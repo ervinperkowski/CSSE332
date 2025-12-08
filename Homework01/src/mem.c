@@ -19,10 +19,11 @@
  * Implementation of getmem()
  */
 void *
-getmem(int nc, int ni)
-{
-  // TODO: Add your code here...
-  return 0;
+getmem(int nc, int ni){
+  void* mem = malloc(8 + nc + ni*sizeof(int));
+  *(int*)mem = ni;
+  *(int*)(mem + 4) = nc;
+  return mem + 8;
 }
 
 /**
@@ -31,7 +32,7 @@ getmem(int nc, int ni)
 void
 freemem(void *mem)
 {
-  // TODO: Add your code here...
+  free(mem-8); //this is for sure right
 }
 
 /**
@@ -40,8 +41,7 @@ freemem(void *mem)
 int
 getnc(void *mem)
 {
-  // TODO: Add your code here...
-  return -1;
+  return *(int*)(mem-4);
 }
 
 /**
@@ -50,8 +50,7 @@ getnc(void *mem)
 int
 getni(void *mem)
 {
-  // TODO: Add your code here...
-  return -1;
+  return *(int*)(mem-8);
 }
 
 /**
@@ -60,8 +59,8 @@ getni(void *mem)
 char *
 getstr(void *mem)
 {
-  // TODO: Add your code here...
-  return 0;
+  int ni = getni(mem);
+  return (char*)mem + ni * 4;
 }
 
 /**
@@ -70,18 +69,22 @@ getstr(void *mem)
 int *
 getintptr(void *mem)
 {
-  // TODO: Add your code here...
-  return 0;
+  return (int*)mem;
 }
-
 /**
  * Implementation of getint_at()
  */
 int
 getint_at(void *mem, int idx, int *res)
 {
-  // TODO: Add your code here...
-  return -1;
+  int ni = getni(mem);
+  
+  if (idx < 0 || idx >= ni){
+	return -1;
+  }
+  
+  *res = *((int*)mem+idx);
+  return 0;
 }
 
 /**
@@ -90,8 +93,14 @@ getint_at(void *mem, int idx, int *res)
 int
 setint_at(void *mem, int idx, int val)
 {
-  // TODO: Add your code here...
-  return -1;
+  int ni = getni(mem);
+
+  if (idx < 0 || idx >= ni){
+        return -1;
+  }
+
+  *((int*)mem+idx) = val;
+  return 0;
 }
 
 /**
@@ -100,6 +109,17 @@ setint_at(void *mem, int idx, int val)
 size_t
 cpstr(void *mem, const char *str, size_t len)
 {
-  // TODO: Add your code here...
-  return 0;
+  int nc = getnc(mem);
+  if (len < nc){
+	strcpy((char*)mem, str);
+	return len+1;
+  }
+  else{
+	
+	for (int i = 0; i < nc; i++){
+		*((char*)mem+i) = str[i];
+	}
+	*((char*)mem+nc) = '\0';
+	return nc;
+  }
 }
