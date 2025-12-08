@@ -44,9 +44,9 @@ vec_new()
 void
 vec_free(struct vector *vec)
 {
-  // TODO: Add your code here...
+  free(vec);
 }
-
+/**
 static unsigned int *
 __vec_realloc(struct vector *vec)
 {
@@ -59,6 +59,8 @@ __vec_realloc(struct vector *vec)
   }
   return tmp;
 }
+*/
+
 
 /**
  * Implementation of the vec_push_back function.
@@ -66,7 +68,27 @@ __vec_realloc(struct vector *vec)
 void
 vec_push_back(struct vector *vec, unsigned int elem)
 {
-  // TODO: Add your code here...
+  if (!vec){
+     return;
+  }
+
+  if (vec->len >= vec->cap){
+	ssize_t new_cap = vec->cap * 2; //double capacity is better than iterating capacity from CSSE230
+	
+	unsigned int *new_data = malloc(sizeof(unsigned int) * new_cap);
+	
+	for (int i = 0; i < vec->len; i++){
+		new_data[i] = vec->data[i]; 
+	}
+
+	free(vec->data);
+
+	vec->data = new_data;
+	vec->cap = new_cap;
+  }
+
+  vec->data[vec->len] = elem;
+  vec->len++;
 }
 
 /**
@@ -79,8 +101,15 @@ vec_pop_back(struct vector *vec)
     return (unsigned int)-1; // doesn't matter what we return.
   }
 
-  // TODO: Add your code here....
-  return 0;
+  int length = vec->len - 1;
+  int result = vec->data[length];
+  unsigned int *newArr = malloc(sizeof(unsigned int) * (length));
+  for (int i = 0; i < length; i++){
+        newArr[i] = vec->data[i];
+  }
+  vec->data = newArr;
+  vec->len = length;
+  return result;
 }
 
 /**
@@ -93,8 +122,7 @@ vec_elem_at(struct vector *vec, unsigned int i)
     return (unsigned int)-1; // doesn't matter what we return.
   }
 
-  // TODO: Add your code here...
-  return 0;
+  return vec->data[i];
 }
 
 /**
@@ -107,6 +135,6 @@ vec_set_at(struct vector *vec, unsigned int i, unsigned int elem)
     return -1;
   }
 
-  // TODO: Add your code here...
+  vec->data[i] = elem;
   return 0;
 }

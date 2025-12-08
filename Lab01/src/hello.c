@@ -7,6 +7,8 @@
  *
  ***********************************************************************************/
 #include "hello.h"
+#include "unistd.h"
+#include "stdio.h"
 
 /**
  * Implementation of print_hello_world
@@ -14,11 +16,6 @@
 int
 print_hello_world()
 {
-  void *p   = (void *)0xdeadbeef;
-  *(int *)p = 3;
-
-  sleep(20);
   printf("Hello world!\n");
-
-  return 4;
+  return 3;
 }

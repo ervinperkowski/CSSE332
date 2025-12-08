@@ -27,11 +27,15 @@ node_mk_node(struct oo_node *node)
 void
 node_rm_node(struct oo_node *node)
 {
-  // TODO: Add your code here...
+  node->prev->next = node->next;
+  node->next->prev = node->prev;
+  node->next = node;
+  node->prev = node;
 }
 
 // This is a helper function, feel free to keep it here or remove it if you do
 // not have a need for it.
+/**
 static void
 _node_add(struct oo_node *left, struct oo_node *node)
 {
@@ -40,6 +44,7 @@ _node_add(struct oo_node *left, struct oo_node *node)
   node->prev       = left;
   left->next       = node;
 }
+*/
 
 /**
  * Implementation of node_add_tail
@@ -47,7 +52,10 @@ _node_add(struct oo_node *left, struct oo_node *node)
 void
 node_add_tail(struct oo_node *head, struct oo_node *node)
 {
-  // TODO: Add your code here..
+ head->prev->next = node; //tail node's next now points to new node
+ node->prev = head->prev; //new node's prev now poitns to tail node
+ head->prev = node;
+ node->next = head;
 }
 
 /**
@@ -56,7 +64,10 @@ node_add_tail(struct oo_node *head, struct oo_node *node)
 void
 node_add_head(struct oo_node *head, struct oo_node *node)
 {
-  // TODO: Add your code here..
+ node->next = head->next;
+ head->next->prev = node;
+ node->prev = head;
+ head->next = node;
 }
 
 /**
@@ -83,7 +94,8 @@ node_to_dbulong(struct oo_node *node)
 void
 db_add_record(struct db *db, struct oo_node *node)
 {
-  // TODO: Add your code here...
+  node_add_tail(&db->head, node);
+  db->rcount++;
 }
 
 /**
@@ -120,7 +132,7 @@ join_str_db(struct db *db)
 
   for(n = db->head.next; n != &db->head; n = n->next) {
     s = node_to_dbstr(n);
-    len += strlen(s->str);
+    len += strlen(s->str) + 1;
   }
 
   r = malloc(len + 1);
@@ -142,6 +154,24 @@ join_str_db(struct db *db)
 int
 searching_seek_and_destroy(struct db *db, unsigned long value)
 {
-  // TODO: Add your code here....
-  return -1;
+ struct oo_node *n;
+ struct db_ulong* s;
+ struct oo_node* a;
+ int removed = 0;
+ n = db->head.next;
+ while (n != &db->head){
+  s = node_to_dbulong(n);
+  if (value == s->value){
+    a = n->next;
+    node_rm_node(n);
+    n = a;
+    db->rcount--;
+    removed++;
+  }
+  else{
+    n = n->next;
+  }
+ }
+
+ return removed;
 }
