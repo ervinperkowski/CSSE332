@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 #include "reading.h"
-
+#include <time.h>
 int
 open_file(const char *name)
 {
@@ -42,8 +42,25 @@ get_file_size(int fd)
 ssize_t
 read_bytes(int fd, char *buf, ssize_t len, size_t incr)
 {
-  // TODO: Complete this with your instructor
-  return 0;
+  ssize_t bytes_read = 0;
+  ssize_t total_bytes = 0;
+  while(len > 0 && (bytes_read = read(fd, buf, incr))){
+	if (bytes_read == -1){
+		if (errno = EINTR){
+			//this is not terrible, continue
+			continue;
+		}
+		else{ //actual failure
+			return -1;
+		}
+	}
+	else{
+		len -= bytes_read; //update len
+        	buf += bytes_read; //move buffer up so we write in new memory
+        	total_bytes += bytes_read;
+	}
+  }
+  return total_bytes;
 }
 
 static double
@@ -99,6 +116,22 @@ _main(int argc, char **argv)
     close(fd);
     return EXIT_FAILURE;
   }
+  //allocate memory to read the file
+  printf("[LOG ]: allocating %d bytes of memory.\n", (int)fsize);
+  char* buf = malloc(fsize*sizeof(char));
+
+  (void)buf;
+
+  if (!buf){
+    fprintf(stderr, "[ERROR]: could not allocate enough memory via nalloc!\n");
+  }
+
+  // read file contents into buffer
+
+  ssize_t total = 0;
+ // read_bytes(fd, buf, fsize, blk);
+ // printf("[LOG ]: read %d amount of bytes\n", (int)total);
+
 
   // TODO:
   // =====
@@ -111,7 +144,7 @@ _main(int argc, char **argv)
   // Add #include <time.h> if it's not there.
   //
 
-  // clock_gettime(CLOCK_MONOTONIC, &ts_start);
+   clock_gettime(CLOCK_MONOTONIC, &ts_start);
   //
   //   THING YOU'D LIKE TO MEASURE HERE
   //
@@ -120,9 +153,13 @@ _main(int argc, char **argv)
   //    PLEASE USE THE SAME FPRINTF STATEMENT BELOW AS THE GRADING SCRIPT
   //    DEPENDS ON IT.
   //
-  // clock_gettime(CLOCK_MONOTONIC, &ts_end);
-  // fprintf(stderr, "%lf seconds time elapsed\n",
-  //         _subtract_timspec(ts_end, ts_start));
+  
+  read_bytes(fd, buf, fsize, blk);
+  printf("[LOG ]: read %d amount of bytes\n", (int)total);
+
+   clock_gettime(CLOCK_MONOTONIC, &ts_end);
+   fprintf(stderr, "%lf seconds time elapsed\n",
+           _subtract_timspec(ts_end, ts_start));
 
   close(fd);
   return rc;

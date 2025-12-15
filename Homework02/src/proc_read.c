@@ -16,6 +16,8 @@
 #include <unistd.h>
 
 
+
+
 static void *
 __get_ptr_from_str(const char *str)
 {
@@ -103,8 +105,6 @@ get_globals_start(struct program_info *pinfo)
       break;
     }
   }
-  printf("Start of globals: %s\n", buff);
-  printf("%s\n", pinfo->infobuff);
   return __get_ptr_from_str(buff);
 }
 
@@ -119,7 +119,6 @@ get_globals_end(struct program_info *pinfo)
       break;
     }
   }
-  printf("End of globals: %s\n", buff);
   return __get_ptr_from_str(buff);
 }
 

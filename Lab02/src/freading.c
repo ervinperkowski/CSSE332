@@ -44,8 +44,19 @@ get_stream_size(FILE *fp)
 ssize_t
 stream_read_bytes(FILE *fp, char *buf, ssize_t len, size_t incr)
 {
-  // TODO: Complete this step for the lab.
-  return 0;
+  ssize_t bytes_read = 0;
+  ssize_t total_bytes = 0;
+  while(len > 0 && (bytes_read = fread(buf, incr, 1, fp))){
+        if (bytes_read == -1){
+           return -1;
+        }
+        else{
+                len -= bytes_read*incr;
+                buf += bytes_read; //move buffer up so we write in new memory
+                total_bytes += bytes_read;
+        }
+  }
+  return total_bytes;
 }
 
 static double
@@ -101,6 +112,17 @@ _main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
+  printf("[LOG ]: allocating %d bytes of memory.\n", (int)fsize);
+  char* buf = malloc(fsize*sizeof(char));
+
+  (void)buf;
+
+  if (!buf){
+    fprintf(stderr, "[ERROR]: could not allocate enough memory via nalloc!\n");
+  }
+
+  ssize_t total = 0;
+
   // TODO:
   // =====
   //  Add code here to real of the bytes in the input file stream.
@@ -112,7 +134,7 @@ _main(int argc, char **argv)
   // Add #include <time.h> if it's not there.
   //
 
-  // clock_gettime(CLOCK_MONOTONIC, &ts_start);
+  clock_gettime(CLOCK_MONOTONIC, &ts_start);
   //
   //   THING YOU'D LIKE TO MEASURE HERE
   //
@@ -121,9 +143,13 @@ _main(int argc, char **argv)
   //    PLEASE USE THE SAME FPRINTF STATEMENT BELOW AS THE GRADING SCRIPT
   //    DEPENDS ON IT.
   //
-  // clock_gettime(CLOCK_MONOTONIC, &ts_end);
-  // fprintf(stderr, "%lf seconds time elapsed\n",
-  //         _subtract_timspec(ts_end, ts_start));
+  
+  stream_read_bytes(stream, buf, fsize, blk);
+  printf("[LOG ]: read %d amount of bytes\n", (int)total);
+
+   clock_gettime(CLOCK_MONOTONIC, &ts_end);
+   fprintf(stderr, "%lf seconds time elapsed\n",
+           _subtract_timspec(ts_end, ts_start));
 
   fclose(stream);
   return rc;
