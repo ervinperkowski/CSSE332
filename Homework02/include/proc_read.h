@@ -20,6 +20,7 @@ struct program_info {
   pid_t pid; //!< The pid of the program we're checking for.
   int ready; //!< Boolean flag indicating whether parsing for this struct has
              //   completed.
+  char infobuff[5000];
 };
 
 /**

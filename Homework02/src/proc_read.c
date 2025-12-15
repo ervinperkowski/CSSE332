@@ -10,6 +10,11 @@
 #include "proc_read.h"
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 
 static void *
 __get_ptr_from_str(const char *str)
@@ -25,64 +30,155 @@ __get_ptr_from_str(const char *str)
   return (void *)addr;
 }
 
+
+
 int
 open_pmaps_file(struct program_info *pinfo, pid_t pid)
 {
-  // TODO: REMOVE THIS BEFORE STARTING, THIS IS TO SILENCE COMPILER WARNINGS
-  (void)__get_ptr_from_str("fe");
+  char buff[200];
+  sprintf(buff, "/proc/%d/maps", pid);
+  int val = open(buff, O_RDONLY);
+  pinfo->pid = val;
+  if (errno){
+    return -1;
+  }
   return 0;
 }
 
 int
 parse_pmaps_file(struct program_info *pinfo)
 {
+  int fd = pinfo->pid;
+  ssize_t bytesRead;
+  while((bytesRead = read(fd, pinfo->infobuff, sizeof(pinfo->infobuff) - 1))){
+	  if (bytesRead == -1){
+                if (errno == EINTR){
+                        //this is not terrible, continue
+                        continue;
+                }
+                else{ //actual failure
+                        return -1;
+                }
+        }
+  }
   return 0;
 }
 
 void *
 get_code_start(struct program_info *pinfo)
 {
-  return 0;
+  char buff[13] = {0};
+  for (size_t i = 0; i < strlen(pinfo->infobuff); i++){
+    if (pinfo->infobuff[i] == 'x' && pinfo->infobuff[i-1] == '-' && pinfo->infobuff[i-2] == 'r'){
+      strncpy(buff, (pinfo->infobuff + i - 28), 12);
+      buff[12] = '\0';
+      break;
+    }
+  }
+  return __get_ptr_from_str(buff);
 }
 
 void *
 get_code_end(struct program_info *pinfo)
 {
-  return 0;
+  char buff[13] = {0};
+  for (size_t i = 0; i < strlen(pinfo->infobuff); i++){
+    if (pinfo->infobuff[i] == 'x' && pinfo->infobuff[i-1] == '-' && pinfo->infobuff[i-2] == 'r'){
+      strncpy(buff, (pinfo->infobuff + i - 15), 12);
+      buff[12] = '\0';
+      break;
+    }
+  }
+  return __get_ptr_from_str(buff);
 }
 
 void *
 get_globals_start(struct program_info *pinfo)
 {
-  return 0;
+  char buff[13] = {0};
+  for (size_t i = 0; i < strlen(pinfo->infobuff); i++){
+    if (pinfo->infobuff[i] == 'w' && pinfo->infobuff[i+1] == '-' && pinfo->infobuff[i-1] == 'r'){
+      strncpy(buff, (pinfo->infobuff + i - 27), 12);
+      buff[12] = '\0';
+      break;
+    }
+  }
+  printf("Start of globals: %s\n", buff);
+  printf("%s\n", pinfo->infobuff);
+  return __get_ptr_from_str(buff);
 }
 
 void *
 get_globals_end(struct program_info *pinfo)
 {
-  return 0;
+  char buff[13] = {0};
+  for (size_t i = 0; i < strlen(pinfo->infobuff); i++){
+    if (pinfo->infobuff[i] == 'w' && pinfo->infobuff[i+1] == '-' && pinfo->infobuff[i-1] == 'r'){
+      strncpy(buff, (pinfo->infobuff + i - 14), 12);
+      buff[12] = '\0';
+      break;
+    }
+  }
+  printf("End of globals: %s\n", buff);
+  return __get_ptr_from_str(buff);
 }
 
 void *
 get_stack_start(struct program_info *pinfo)
 {
-  return 0;
+  char buff[13] = {0}; 
+  for (size_t i = 0; i < strlen(pinfo->infobuff); i++){
+    if (pinfo->infobuff[i] == '['){
+      if (pinfo->infobuff[i+1] == 's'){
+        strncpy(buff, (pinfo->infobuff + i - 74), 12);
+	buff[12] = '\0';
+      }
+    }
+  }
+  return __get_ptr_from_str(buff);
 }
 
 void *
 get_stack_end(struct program_info *pinfo)
 {
-  return 0;
+  char buff[13] = {0};
+  for (size_t i = 0; i < strlen(pinfo->infobuff); i++){
+    if (pinfo->infobuff[i] == '['){
+      if (pinfo->infobuff[i+1] == 's'){
+        strncpy(buff, (pinfo->infobuff + i - 60), 12);
+        buff[12] = '\0';
+      }
+    }
+  }
+  return __get_ptr_from_str(buff);
 }
 
 void *
 get_heap_start(struct program_info *pinfo)
 {
-  return 0;
+  char buff[13] = {0};
+  for (size_t i = 0; i < strlen(pinfo->infobuff); i++){
+    if (pinfo->infobuff[i] == '['){
+      if (pinfo->infobuff[i+1] == 'h'){
+        strncpy(buff, (pinfo->infobuff + i - 74), 12);
+        buff[12] = '\0';
+      }
+    }
+  }
+  return __get_ptr_from_str(buff);
 }
 
 void *
 get_heap_end(struct program_info *pinfo)
 {
-  return 0;
+  char buff[13] = {0};
+  for (size_t i = 0; i < strlen(pinfo->infobuff); i++){
+    if (pinfo->infobuff[i] == '['){
+      if (pinfo->infobuff[i+1] == 'h'){
+        strncpy(buff, (pinfo->infobuff + i - 60), 12);
+        buff[12] = '\0';
+      }
+    }
+  }
+  return __get_ptr_from_str(buff);
 }
